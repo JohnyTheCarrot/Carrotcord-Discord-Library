@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{509E77C1-36CF-4FB4-9831-ABD5AE7743A2}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Carrotcord_API</RootNamespace>
+    <AssemblyName>Carrotcord API</AssemblyName>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="RestSharp, Version=106.2.2.0, Culture=neutral, PublicKeyToken=598062e77f915f75, processorArchitecture=MSIL">
+      <HintPath>..\packages\RestSharp.106.2.2\lib\net452\RestSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="websocket-sharp-core, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\websocketsharp.core.1.0.0\lib\netstandard2.0\websocket-sharp-core.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Carrotcord\API\BitWiseTest.cs" />
+    <Compile Include="Carrotcord\API\CarrotcordLogger.cs" />
+    <Compile Include="Carrotcord\API\ConvertIntoJSON.cs" />
+    <Compile Include="Carrotcord\API\ErrorCode.cs" />
+    <Compile Include="Carrotcord\API\FieldType.cs" />
+    <Compile Include="Carrotcord\API\GuildPermission.cs" />
+    <Compile Include="Carrotcord\API\JSONDeserializeAndHandleErrors.cs" />
+    <Compile Include="Carrotcord\API\JSONError.cs" />
+    <Compile Include="Carrotcord\API\OPCodes.cs" />
+    <Compile Include="Carrotcord\API\Overwrite.cs" />
+    <Compile Include="Carrotcord\API\Payload.cs" />
+    <Compile Include="Carrotcord\API\RequireChannelTypeAttribute.cs" />
+    <Compile Include="Carrotcord\API\RestApiClient.cs" />
+    <Compile Include="Carrotcord\API\TokenType.cs" />
+    <Compile Include="Carrotcord\API\MissingAccessException50001.cs" />
+    <Compile Include="Carrotcord\Events\ClientReadyEvent.cs" />
+    <Compile Include="Carrotcord\Stuff\Channel.cs" />
+    <Compile Include="Carrotcord\Stuff\Command.cs" />
+    <Compile Include="Carrotcord\Stuff\DiscordEmbed.cs" />
+    <Compile Include="Carrotcord\Stuff\EmbedAuthor.cs" />
+    <Compile Include="Carrotcord\Stuff\EmbedFooter.cs" />
+    <Compile Include="Carrotcord\Stuff\EmbedThumbnail.cs" />
+    <Compile Include="Carrotcord\Stuff\emoji.cs" />
+    <Compile Include="Carrotcord\Stuff\Emote.cs" />
+    <Compile Include="Carrotcord\Stuff\Guild.cs" />
+    <Compile Include="Carrotcord\Stuff\GuildTextChannel.cs" />
+    <Compile Include="Carrotcord\Stuff\GuildUser.cs" />
+    <Compile Include="Carrotcord\Stuff\GuildVoiceChannel.cs" />
+    <Compile Include="Carrotcord\API\InputTooLongException.cs" />
+    <Compile Include="Carrotcord\Stuff\Message.cs" />
+    <Compile Include="Carrotcord\Stuff\Role.cs" />
+    <Compile Include="Carrotcord\Stuff\RoleCache.cs" />
+    <Compile Include="Carrotcord\Stuff\SelfUser.cs" />
+    <Compile Include="Carrotcord\Stuff\Storage.cs" />
+    <Compile Include="Carrotcord\API\UnknownMemberException10007.cs" />
+    <Compile Include="Carrotcord\Stuff\User.cs" />
+    <Compile Include="Carrotcord\WebSocket\Bot.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
