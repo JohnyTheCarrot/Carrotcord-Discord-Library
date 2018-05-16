@@ -35,6 +35,18 @@ namespace Carrotcord_API.Carrotcord.API
             return toreturn;
         }
 
+        /// <summary>
+        /// When shit goes south, use this. It will display the log message in red.
+        /// </summary>
+        /// <param name="logSource"></param>
+        /// <param name="message"></param>
+        public static void logBork(string message)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"[{DateTime.Now}] [CLIENT] [{getFixedLogSource(LogSource.ERRORHANDLER)}]: {message}");
+            Console.ForegroundColor = ConsoleColor.White;
+        }
+
         public static void log(LogSource logSource, string message)
         {
             Console.ForegroundColor = ConsoleColor.White;

@@ -9,5 +9,6 @@ namespace Carrotcord_API.Carrotcord.Stuff
     class Storage
     {
         public static Dictionary<long, Message> cachedMessages = new Dictionary<long, Message>();
+        public static Dictionary<long, Guild> cachedGuilds = new Dictionary<long, Guild>();
     }
 }

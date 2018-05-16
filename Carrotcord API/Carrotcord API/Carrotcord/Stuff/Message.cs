@@ -17,7 +17,7 @@ namespace Carrotcord_API.Carrotcord.Stuff
         public long ID, channelID, guildID = 0;
         public bool pinned;
         private Guild guild;
-        public Guild Guild { get { return this.guild; } internal set { guild = value; } }
+        public Guild Guild { get { return guild; } internal set { guild = value; } }
 
         public static Message getMessage(long channel, long ID)
         {

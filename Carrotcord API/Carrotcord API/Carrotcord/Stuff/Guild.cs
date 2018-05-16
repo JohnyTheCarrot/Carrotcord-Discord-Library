@@ -45,9 +45,14 @@ namespace Carrotcord_API.Carrotcord.Stuff
 
         public static Guild getGuild(long ID)
         {
-            IRestResponse response = RestApiClient.GET("guilds/" + ID);
+            /**IRestResponse response = RestApiClient.GET("guilds/" + ID);
             dynamic data = JsonConvert.DeserializeObject(response.Content);
-            return fromJSON(data);
+            return fromJSON(data);*/
+            if(Storage.cachedGuilds.TryGetValue(ID, out Guild value))
+            {
+                return value;
+            }
+            return null;
         }
 
         public GuildUser getMember(long ID)
@@ -76,13 +81,22 @@ namespace Carrotcord_API.Carrotcord.Stuff
                 owner_id = Convert.ToInt64(data.owner_id)   
             };
 
-            Console.WriteLine(data.members);
-
-            for(int i = 0; i < Convert.ToInt32(data.members.Count); i++)
+            if(data.roles!=null)
             {
-                GuildUser user = GuildUser.FromData(data.members[i], guild);
-                guild.members.Add(user);
-                //CarrotcordLogger.log(CarrotcordLogger.LogSource.BOT, user.roles[0].name);
+                for(int i = 0; i < Convert.ToInt64(data.roles.Count); i++)
+                {
+                    guild.roles.Add(Role.fromJSON(data.roles[i], guild));
+                }
+            }
+
+            if (data.members != null)
+            {
+                for (int i = 0; i < Convert.ToInt32(data.members.Count); i++)
+                {
+                    GuildUser user = GuildUser.FromData(data.members[i], guild);
+                    guild.members.Add(user);
+                    //CarrotcordLogger.log(CarrotcordLogger.LogSource.BOT, user.roles[0].name);
+                }
             }
 
             if(data.channels!=null)
@@ -96,24 +110,7 @@ namespace Carrotcord_API.Carrotcord.Stuff
                 }
             }
 
-            if(data.roles!=null)
-            {
-                for(int i = 0; i < Convert.ToInt64(data.roles.Count); i++)
-                {
-                    /**Role role = new Role();
-                    dynamic _role = data.roles[i];
-                    role.ID = _role.id;
-                    role.name = _role.name;
-                    role.color = _role.color;
-                    role.hoist = _role.hoist;
-                    role.position = _role.position;
-                    role.permissionsInt = _role.permissions;
-                    role.managed = _role.managed;
-                    role.mentionable = _role.mentionable;
-                    guild.roles.Add(role);*/
-                    guild.roles.Add(Role.fromJSON(data.roles[i], guild));
-                }
-            }
+            Storage.cachedGuilds.Add(guild.ID, guild);
             
             return guild;
         }

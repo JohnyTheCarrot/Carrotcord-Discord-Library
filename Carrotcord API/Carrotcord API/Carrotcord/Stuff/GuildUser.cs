@@ -24,6 +24,7 @@ namespace Carrotcord_API.Carrotcord.Stuff
             if(user.nick!=null) user.nick = data.nick;
             user.ID = data.user.id;
             user.guild = guild;
+            user.username = data.user.username;
             user.discriminator = data.user.discriminator;
             user.discriminatorString = User.fixDiscrim(user.discriminator);
             //TODO: roles;
@@ -31,7 +32,7 @@ namespace Carrotcord_API.Carrotcord.Stuff
             {
                 for(int i = 0; i < data.roles.Count; i++)
                 {
-                    CarrotcordLogger.log(CarrotcordLogger.LogSource.BOT, ""+data.roles[i]);
+                    //CarrotcordLogger.log(CarrotcordLogger.LogSource.BOT, ""+data.roles[i]);
                     user.roles.Add(Role.getRole(Convert.ToInt64(data.roles[i])));
                 }
             }

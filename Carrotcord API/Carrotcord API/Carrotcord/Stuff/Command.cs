@@ -50,7 +50,7 @@ namespace Carrotcord_API.Carrotcord.Stuff
                             };
                             message.reply("Something borked. <:monkaSCD:444404955265236992>", embed);
                         }
-                    } 
+                    }
                 } catch(ArgumentOutOfRangeException)
                 {
                     Console.WriteLine("hey");

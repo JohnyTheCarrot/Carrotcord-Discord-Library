@@ -1,0 +1,14 @@
+D:\GitHub repos\Carrotcord-Discord-Library\Carrotcord API\Alan Bot\bin\Debug\Alan Bot.exe.config
+D:\GitHub repos\Carrotcord-Discord-Library\Carrotcord API\Alan Bot\bin\Debug\Alan Bot.exe
+D:\GitHub repos\Carrotcord-Discord-Library\Carrotcord API\Alan Bot\bin\Debug\Alan Bot.pdb
+D:\GitHub repos\Carrotcord-Discord-Library\Carrotcord API\Alan Bot\bin\Debug\Carrotcord API.dll
+D:\GitHub repos\Carrotcord-Discord-Library\Carrotcord API\Alan Bot\bin\Debug\websocket-sharp-core.dll
+D:\GitHub repos\Carrotcord-Discord-Library\Carrotcord API\Alan Bot\bin\Debug\RestSharp.dll
+D:\GitHub repos\Carrotcord-Discord-Library\Carrotcord API\Alan Bot\bin\Debug\Newtonsoft.Json.dll
+D:\GitHub repos\Carrotcord-Discord-Library\Carrotcord API\Alan Bot\bin\Debug\netstandard.dll
+D:\GitHub repos\Carrotcord-Discord-Library\Carrotcord API\Alan Bot\bin\Debug\Carrotcord API.pdb
+D:\GitHub repos\Carrotcord-Discord-Library\Carrotcord API\Alan Bot\bin\Debug\Newtonsoft.Json.xml
+D:\GitHub repos\Carrotcord-Discord-Library\Carrotcord API\Alan Bot\obj\Debug\Alan Bot.csproj.CoreCompileInputs.cache
+D:\GitHub repos\Carrotcord-Discord-Library\Carrotcord API\Alan Bot\obj\Debug\Alan Bot.exe
+D:\GitHub repos\Carrotcord-Discord-Library\Carrotcord API\Alan Bot\obj\Debug\Alan Bot.pdb
+D:\GitHub repos\Carrotcord-Discord-Library\Carrotcord API\Alan Bot\obj\Debug\Alan Bot.csprojResolveAssemblyReference.cache

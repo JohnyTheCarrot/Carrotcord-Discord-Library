@@ -29,10 +29,14 @@ namespace Carrotcord_API
         internal string gateway;
         internal int api_version = 6;
         internal string encoding = "json";
+        internal int session_id = 0;
 
         //commands
         public Dictionary<string, Command> commands = new Dictionary<string, Command>();
         public string prefix = "!";
+        private bool ratelimited = false;
+        private bool retry = true;
+        private Timer retryTimer;
 
         public event ClientReadyEventHandler ClientReadyEvent;
         public event MessageCreatedEventHandler MessageCreatedEvent;
@@ -40,14 +44,45 @@ namespace Carrotcord_API
         public Bot(string _token)
         {
             token = _token;
+            /**dynamic d = JsonConvert.DeserializeObject(RestApiClient.GETNOAUTH("gateway").Content);
+            gateway = Convert.ToString(d.url);
+            socket = new WebSocket($"{gateway}/?v={api_version}&encoding={encoding}&client_id=430746509714259989");
+            CarrotcordLogger.log(CarrotcordLogger.LogSource.WEBSOCKET, $"[CONNECTING] {gateway}, version: {api_version}, encoding: {encoding}");
+            socket.ConnectAsync();
+            socket.OnOpen += Socket_OnOpen;
+            socket.OnClose += Socket_OnClose;
+            socket.OnMessage += Socket_OnMessage;*/
+            login();
+            current = this;
+        }
+
+        private void login()
+        {
+            if (socket!=null && socket.IsAlive) return;
             dynamic d = JsonConvert.DeserializeObject(RestApiClient.GETNOAUTH("gateway").Content);
             gateway = Convert.ToString(d.url);
             socket = new WebSocket($"{gateway}/?v={api_version}&encoding={encoding}&client_id=430746509714259989");
             CarrotcordLogger.log(CarrotcordLogger.LogSource.WEBSOCKET, $"[CONNECTING] {gateway}, version: {api_version}, encoding: {encoding}");
             socket.ConnectAsync();
             socket.OnOpen += Socket_OnOpen;
+            socket.OnClose += Socket_OnClose;
             socket.OnMessage += Socket_OnMessage;
-            current = this;
+        }
+
+        private void Socket_OnClose(object sender, CloseEventArgs e)
+        {
+            /**if(retry)
+            {
+                retryTimer = new Timer(30000);
+                retryTimer.AutoReset = true;
+                retryTimer.Elapsed += RetryTimer_Elapsed;
+                retryTimer.Start();
+            }*/
+        }
+
+        private void RetryTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            login();
         }
 
         public Bot RegisterCommand(Command command)
@@ -88,19 +123,11 @@ namespace Carrotcord_API
             botUser.username = Convert.ToString(data.d.user.username);
             botUser.ID = Convert.ToInt64(data.d.user.id);
             botUser.avatar = Convert.ToString(data.d.user.avatar);
-            ClientReadyEvent(this, new ClientReadyEventArgs(botUser));
-            //socket.Send($"{{\"op\":8,\"d\":{{\"guild_id\":\"430746669466910721\",\"querry\":\"\",\"limit\":50}}}}");
+            ClientReadyEvent?.Invoke(this, new ClientReadyEventArgs(botUser));
         }
 
         protected void MESSAGE_CREATED(dynamic data)
         {
-            /**User author = new User();
-            dynamic authorData = data.d.author;
-            author.username = Convert.ToString(authorData.username);
-            author.ID = Convert.ToInt64(authorData.ID);
-            author.discriminator = Convert.ToInt32(authorData.discriminator);
-            author.avatar = Convert.ToString(authorData.avatar);
-            author.bot = Convert.ToBoolean(authorData.bot);*/
             User author = User.fromData(data.d.author);
 
             Message message = new Message();
@@ -114,8 +141,7 @@ namespace Carrotcord_API
             message.pinned = Convert.ToBoolean(messageData.pinned);
 
             //Storage.cachedMessages.Add(message.ID, message);
-
-            MessageCreatedEvent(this, new MessageCreatedEventArgs(message));
+            MessageCreatedEvent?.Invoke(this, new MessageCreatedEventArgs(message));
             if (message.author.bot) return;
             foreach (Command cmd in commands.Values) {
                 if (message.content.StartsWith(prefix) && message.content.Substring(1).Split(' ')[0]==cmd.name)
@@ -135,11 +161,6 @@ namespace Carrotcord_API
         protected void GUILD_CREATE(dynamic data)
         {
             Guild guild = Guild.fromJSON(data.d);
-            /**log(guild.name);
-            foreach(Role role in guild.roles)
-            {
-                log($"{role.position}: {role.name}");
-            }*/
         }
 
         protected void MESSAGE_DELETED(dynamic data)
@@ -157,7 +178,6 @@ namespace Carrotcord_API
                 timer.AutoReset = true;
                 timer.Elapsed += Timer_Elapsed;
                 timer.Start();
-                //bool completed;
                 var hello = new Payload()
                 {
                     OP = OPCodes.HEARTBEAT,
@@ -191,7 +211,6 @@ namespace Carrotcord_API
         private void IDENTIFY()
         {
             string data = $"{{\"op\": 2, \"d\": {{ \"token\": \"{token}\", \"properties\": {{\"$os\": \"windows\", \"$browser\": \"carrotcord\", \"$device\": \"carrotcord\"}}, \"large_threshold\": 250, \"presence\": {{ \"game\": {{ \"name\": \"{game}\", \"type\": 0 }}, \"status\": \"online\", \"afk\": false, \"since\": null }} }} }}";
-            //Console.WriteLine(data);
             CarrotcordLogger.log(CarrotcordLogger.LogSource.WEBSOCKET, "[IDENTIFY]");
             socket.Send(data);
         }
@@ -218,8 +237,15 @@ namespace Carrotcord_API
                         break;
                 }
             }
+            if(data.s!=null && Convert.ToInt32(data.s)!=null)
+            {
+                session_id = Convert.ToInt32(data.s);
+            }
             switch(Convert.ToString(data.op))
             {
+                case "9":
+                    INVALID_SESSIONS_EVENT(data);
+                    break;
                 case "10":
                     HELLO(data);
                     break;
@@ -227,6 +253,16 @@ namespace Carrotcord_API
                     CarrotcordLogger.LogServer(CarrotcordLogger.LogSource.WEBSOCKET, "HEARTBEAT RECEIVED");
                     break;
             }
+        }
+
+        private void INVALID_SESSIONS_EVENT(dynamic data)
+        {
+            //ratelimited = true;
+            CarrotcordLogger.logBork("[DISCONNECT] OPCODE 9 INVALID SESSION");
+            CarrotcordLogger.logBork("[OPCODE 9 DATA]: ---------------------------");
+            CarrotcordLogger.logBork(data);
+            CarrotcordLogger.logBork("--------------------------------------------");
+            socket.CloseAsync();
         }
 
         public void log(string message)

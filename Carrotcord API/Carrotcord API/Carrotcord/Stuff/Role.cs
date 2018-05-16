@@ -27,7 +27,6 @@ namespace Carrotcord_API.Carrotcord.Stuff
         {
             foreach(Role role in Cache.cachedRoles.Keys)
             {
-                CarrotcordLogger.log(CarrotcordLogger.LogSource.BOT, ""+role.ID);
                 if (role.ID == ID) return role;
             }
             return null;
