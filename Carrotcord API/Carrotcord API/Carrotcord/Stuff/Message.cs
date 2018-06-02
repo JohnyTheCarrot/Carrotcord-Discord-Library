@@ -28,6 +28,7 @@ namespace Carrotcord_API.Carrotcord.Stuff
             message.channelID = data.channel_id;
             message.author = User.fromData(data.author);
             message.pinned = data.pinned;
+            message.Guild = Guild.getGuild(message.guildID);
             return message;
         }
 
@@ -40,6 +41,7 @@ namespace Carrotcord_API.Carrotcord.Stuff
             message.channelID = Convert.ToInt64(data.channel_id);
             message.guildID = Convert.ToInt64(data.guild_id);
             message.pinned = Convert.ToBoolean(data.pinned);
+            message.Guild = Guild.getGuild(message.guildID);
             return message;
         }
 
@@ -75,7 +77,7 @@ namespace Carrotcord_API.Carrotcord.Stuff
         {
             if(Bot.current!=null)
             {
-                RestApiClient.POSTDiscordMessage($"channels/{channelID}/messages", message);
+                CarrotcordLogger.logVerbose(RestApiClient.POSTDiscordMessage($"channels/{channelID}/messages", message).Content);
             }
         }
 

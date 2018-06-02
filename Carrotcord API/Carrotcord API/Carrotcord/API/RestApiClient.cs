@@ -25,6 +25,7 @@ namespace Carrotcord_API.Carrotcord.API
             request.AddHeader("Content-Type", "application/json");
             request.AddHeader("User-Agent", User_Agent);
             IRestResponse response = client.Get(request);
+            CarrotcordLogger.LogClient(CarrotcordLogger.LogSource.REST, "[GET] https://discordapp.com/api/v6/" + dir);
             //Console.WriteLine(response.Content);
             //CarrotcordLogger.log(CarrotcordLogger.LogSource.BOT, response.Content);
             return response;
@@ -35,6 +36,7 @@ namespace Carrotcord_API.Carrotcord.API
             client.BaseUrl = new Uri("https://discordapp.com/api/v6/");
             RestRequest request = new RestRequest(dir);
             IRestResponse response = client.Get(request);
+            CarrotcordLogger.LogClient(CarrotcordLogger.LogSource.REST, "[GET] https://discordapp.com/api/v6/" + dir);
             return response;
         }
 
@@ -47,6 +49,7 @@ namespace Carrotcord_API.Carrotcord.API
             request.AddHeader("Content-Type", "application/json");
             request.AddHeader("User-Agent", User_Agent);
             IRestResponse response = client.Post(request);
+            CarrotcordLogger.LogClient(CarrotcordLogger.LogSource.REST, "[POST] https://discordapp.com/api/v6/" + dir);
             return response;
         }
 
@@ -59,6 +62,11 @@ namespace Carrotcord_API.Carrotcord.API
             request.AddHeader("Content-Type", "application/json");
             request.AddHeader("User-Agent", User_Agent);
             IRestResponse response = client.Post(request);
+            foreach(Parameter header in response.Headers)
+            {
+                //CarrotcordLogger.LogClient(CarrotcordLogger.LogSource.REST, $"[POST] {header.Name} - {header.Value}");
+            }
+            CarrotcordLogger.LogClient(CarrotcordLogger.LogSource.REST, "[POST] https://discordapp.com/api/v6/" + dir);
             return response;
         }
 
@@ -71,6 +79,7 @@ namespace Carrotcord_API.Carrotcord.API
             request.AddHeader("Content-Type", "application/json");
             request.AddHeader("User-Agent", User_Agent);
             IRestResponse response = client.Put(request);
+            CarrotcordLogger.LogClient(CarrotcordLogger.LogSource.REST, "[PUT] https://discordapp.com/api/v6/" + dir);
             return response;
         }
 
@@ -82,6 +91,7 @@ namespace Carrotcord_API.Carrotcord.API
             request.AddHeader("Content-Type", "application/json");
             request.AddHeader("User-Agent", User_Agent);
             IRestResponse response = client.Delete(request);
+            CarrotcordLogger.LogClient(CarrotcordLogger.LogSource.REST, "[DELETE] https://discordapp.com/api/v6/" + dir);
             Console.WriteLine(response.Content);
             return response;
         }
@@ -94,6 +104,7 @@ namespace Carrotcord_API.Carrotcord.API
             request.AddHeader("Content-Type", "application/json");
             request.AddHeader("User-Agent", User_Agent);
             IRestResponse response = client.Patch(request);
+            CarrotcordLogger.LogClient(CarrotcordLogger.LogSource.REST, "[PATCH] https://discordapp.com/api/v6/" + dir);
             Console.WriteLine(response.Content);
             return response;
         }
@@ -107,6 +118,7 @@ namespace Carrotcord_API.Carrotcord.API
             request.AddHeader("Content-Type", "application/json");
             request.AddHeader("User-Agent", User_Agent);
             IRestResponse response = client.Patch(request);
+            CarrotcordLogger.LogClient(CarrotcordLogger.LogSource.REST, "[PATCH] https://discordapp.com/api/v6/" + dir);
             return response;
         }
 

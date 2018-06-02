@@ -49,7 +49,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Carrotcord\API\BitWiseTest.cs" />
     <Compile Include="Carrotcord\API\CarrotcordLogger.cs" />
     <Compile Include="Carrotcord\API\ConvertIntoJSON.cs" />
     <Compile Include="Carrotcord\API\ErrorCode.cs" />
@@ -64,11 +63,18 @@
     <Compile Include="Carrotcord\API\RestApiClient.cs" />
     <Compile Include="Carrotcord\API\TokenType.cs" />
     <Compile Include="Carrotcord\API\MissingAccessException50001.cs" />
-    <Compile Include="Carrotcord\Events\ClientReadyEvent.cs" />
+    <Compile Include="Carrotcord\Events\CarrotcordEvents.cs" />
+    <Compile Include="Carrotcord\Stuff\ApplicationInfo.cs" />
     <Compile Include="Carrotcord\Stuff\Channel.cs" />
-    <Compile Include="Carrotcord\Stuff\Command.cs" />
+    <Compile Include="Carrotcord\Stuff\Commands\Command.cs" />
+    <Compile Include="Carrotcord\Stuff\Commands\CommandContext.cs" />
+    <Compile Include="Carrotcord\Stuff\Commands\CommandOption.cs" />
+    <Compile Include="Carrotcord\Stuff\Commands\CommandRequirement.cs" />
+    <Compile Include="Carrotcord\Stuff\Commands\RequireChannelID.cs" />
+    <Compile Include="Carrotcord\Stuff\Commands\RequireGuildPermission.cs" />
     <Compile Include="Carrotcord\Stuff\DiscordEmbed.cs" />
     <Compile Include="Carrotcord\Stuff\EmbedAuthor.cs" />
+    <Compile Include="Carrotcord\Stuff\EmbedField.cs" />
     <Compile Include="Carrotcord\Stuff\EmbedFooter.cs" />
     <Compile Include="Carrotcord\Stuff\EmbedThumbnail.cs" />
     <Compile Include="Carrotcord\Stuff\emoji.cs" />

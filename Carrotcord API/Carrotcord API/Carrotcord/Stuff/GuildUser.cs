@@ -17,6 +17,44 @@ namespace Carrotcord_API.Carrotcord.Stuff
         public bool mute;
         public Guild guild;
 
+        public bool hasPermission(GuildPermission.Permission permission)
+        {
+            foreach(Role role in roles)
+            {
+                foreach(GuildPermission.Permission perm in role.permissions)
+                {
+                    if (perm == permission) return true;
+                }
+            }
+            return false;
+        }
+
+        public bool hasPermission(string permission)
+        {
+            if (Enum.TryParse(permission, out GuildPermission.Permission perm))
+            {
+                return hasPermission(perm);
+            }
+            throw new ArgumentException($"Could not parse {permission} as a permission");
+        }
+
+        public bool hasPermissions(List<GuildPermission.Permission> permissions)
+        {
+            int foundPermissions = 0;
+            foreach (Role role in roles)
+            {
+                foreach (GuildPermission.Permission perm in role.permissions)
+                {
+                    foreach(GuildPermission.Permission perms in permissions)
+                    {
+                        if (perm == perms) foundPermissions++;
+                        if (foundPermissions == permissions.Count) return true;
+                    }
+                }
+            }
+            return false;
+        }
+
         internal static GuildUser FromData(dynamic data, Guild guild)
         {
             GuildUser user = new GuildUser();

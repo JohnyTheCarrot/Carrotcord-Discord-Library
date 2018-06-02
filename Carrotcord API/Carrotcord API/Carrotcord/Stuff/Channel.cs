@@ -42,7 +42,13 @@ namespace Carrotcord_API.Carrotcord.Stuff
         public static Channel getChannel(long ID)
         {
             //Console.WriteLine(RestApiClient.GET("channels/" + ID).Content);
-            return fromData(JSONDeserializeAndHandleErrors.DeserializeJSON(RestApiClient.GET("channels/" + ID)));
+            if (Storage.cachedChannels.TryGetValue(ID, out Channel value))
+            {
+                return value;
+            }
+            Channel channel = fromData(JSONDeserializeAndHandleErrors.DeserializeJSON(RestApiClient.GET("channels/" + ID)));
+            Storage.cachedChannels.Add(channel.ID, channel);
+            return channel;
         }
 
         public static Channel GetGuildChannels(long guild_id)
@@ -85,6 +91,10 @@ namespace Carrotcord_API.Carrotcord.Stuff
 
         internal static Channel fromData(dynamic data)
         {
+            if (Storage.cachedChannels.TryGetValue(Convert.ToInt64(data.id), out Channel value))
+            {
+                return value;
+            }
             Channel channel = new Channel();
             channel.ID = Convert.ToInt64(data.id);
             channel.type = Convert.ToInt32(data.type);
@@ -99,6 +109,7 @@ namespace Carrotcord_API.Carrotcord.Stuff
                     channel.recipients.Add(User.fromData(data.recipients[i]));
                 }
             }
+            Storage.cachedChannels.Add(channel.ID, channel);
             return channel;
         }
 

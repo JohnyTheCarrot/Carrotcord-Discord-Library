@@ -43,6 +43,27 @@ namespace Carrotcord_API.Carrotcord.Stuff
             return "";
         }
 
+        public void BanMember(User member)
+        {
+            if (member == null) throw new ArgumentNullException("Can't leave member as null, what were you thinking?");
+            RestApiClient.PUT($"guilds/{ID}/bans/{member.ID}");
+        }
+
+        public void BanMember(GuildUser member, int delete_messages_days, string reason)
+        {
+            if (delete_messages_days < 0 || delete_messages_days > 7) throw new ArgumentException("Cannot delete messages older than six days. Or if you're silly and you're trying to break things, no, less than zero doesn't work smh.");
+            if (String.IsNullOrEmpty(reason)) throw new ArgumentException("Can't leave reason empty.");
+            if (member == null) throw new ArgumentNullException("Can't leave member as null, what were you thinking?");
+            RestApiClient.PUT($"guilds/{ID}/bans/{member.ID}?delete-message-days={delete_messages_days}&reason={reason}");
+        }
+
+        public void BanMember(GuildUser member, string reason)
+        {
+            if (String.IsNullOrEmpty(reason)) throw new ArgumentException("Can't leave reason empty.");
+            if (member == null) throw new ArgumentNullException("Can't leave member as null, what were you thinking?");
+            RestApiClient.PUT($"guilds/{ID}/bans/{member.ID}?reason={reason}");
+        }
+
         public static Guild getGuild(long ID)
         {
             /**IRestResponse response = RestApiClient.GET("guilds/" + ID);
@@ -55,19 +76,57 @@ namespace Carrotcord_API.Carrotcord.Stuff
             return null;
         }
 
-        public GuildUser getMember(long ID)
+        public GuildUser getMember(object member)
+        {
+            if(member is Int64) {
+                //TODO: FIX
+                CarrotcordLogger.log(CarrotcordLogger.LogSource.BOT, "long: "+member);
+                foreach (GuildUser m in members)
+                {
+                    CarrotcordLogger.log(CarrotcordLogger.LogSource.BOT, "guilduser " + m.username + "("+m.ID+")");
+                    if (m.ID == (long)member)
+                    {
+                        CarrotcordLogger.log(CarrotcordLogger.LogSource.BOT, "MATCH");
+                        return m;
+                    }
+                }
+                return null;
+            }
+            if(member is User)
+            {
+                foreach (GuildUser m in members)
+                {
+                    if (m.user == (User)member) return m;
+
+                }
+                return null;
+            }
+            if(member is string)
+            {
+                CarrotcordLogger.log(CarrotcordLogger.LogSource.BOT, "" + member);
+                foreach (GuildUser m in members)
+                {
+                    if (m.username == (string)member) return m;
+                }
+                return null;
+            }
+            return null;
+        }
+
+        /**public GuildUser getMember(long ID)
         {
             foreach(GuildUser member in members)
             {
                 if (member.ID == ID) return member;
+                
             }
             return null;
             /**IRestResponse response = RestApiClient.GET($"guilds/{this.ID}/members/{ID}");
             dynamic data = JsonConvert.DeserializeObject(response.Content);
             Console.WriteLine(data.code + " " + Convert.ToInt32(data.code));
             if (Convert.ToInt32(data.code) == 10007) throw new UnknownMemberException10007($"Unknown member \"{ID}\"");
-            return GuildUser.fromData((dynamic)JsonConvert.DeserializeObject(response.Content));*/
-        }
+            return GuildUser.fromData((dynamic)JsonConvert.DeserializeObject(response.Content));
+        }*/
 
         internal static Guild fromJSON(dynamic data)
         {
@@ -95,7 +154,7 @@ namespace Carrotcord_API.Carrotcord.Stuff
                 {
                     GuildUser user = GuildUser.FromData(data.members[i], guild);
                     guild.members.Add(user);
-                    //CarrotcordLogger.log(CarrotcordLogger.LogSource.BOT, user.roles[0].name);
+                    CarrotcordLogger.log(CarrotcordLogger.LogSource.BOT, "guilduser init "+user.username);
                 }
             }
 

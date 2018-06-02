@@ -1,4 +1,5 @@
 ﻿using Carrotcord_API.Carrotcord.API;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +17,7 @@ namespace Carrotcord_API.Carrotcord.Stuff
         public int color = 16711680;
         public EmbedFooter footer;
         public EmbedAuthor author;
+        public List<EmbedField> fields = new List<EmbedField>();
 
         public override string ToString()
         {
@@ -30,7 +32,8 @@ namespace Carrotcord_API.Carrotcord.Stuff
 
         internal object toJSON()
         {
-            return new { title = this.title, type = this.type, description = this.description, color = this.color, footer = footer?.toJSON(), author = author?.toJSON() };
+            if(fields==null || fields.Count==0) return new { title = this.title, type = this.type, description = this.description, color = this.color, footer = footer?.toJSON(), author = author?.toJSON()};
+            else return new { title = this.title, type = this.type, description = this.description, color = this.color, footer = footer?.toJSON(), author = author?.toJSON(), fields = fields };
         }
     }
 }

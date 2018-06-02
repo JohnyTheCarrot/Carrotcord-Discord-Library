@@ -29,7 +29,12 @@ namespace Carrotcord_API
         internal string gateway;
         internal int api_version = 6;
         internal string encoding = "json";
-        internal int session_id = 0;
+        //internal int session_id = 0;
+        public string session_id { get; internal set; }
+        public int sequence { get; internal set; }
+        private Connection connectionStatus;
+        public bool verboseLogging = false;
+        public Connection ConnectionStatus { get { return connectionStatus; } set{ connectionStatus = value; if(verboseLogging) CarrotcordLogger.logVerbose("ConnectionStatus set to " + value); } }
 
         //commands
         public Dictionary<string, Command> commands = new Dictionary<string, Command>();
@@ -38,11 +43,30 @@ namespace Carrotcord_API
         private bool retry = true;
         private Timer retryTimer;
 
+        public enum Connection
+        {
+            LOGGING_IN,
+            RESUMING, //DOING A RESUME
+            EVERYTHING_IS_FINE, //:ablobsweats:
+            OPCODE9, //OPCODE 9
+            DISCONNECTED //DISCONNECTED
+        }
+
+        private bool helloHeartbeat = false;
+
+        public enum ConnectType
+        {
+            NORMAL,
+            RESUME
+        }
+
         public event ClientReadyEventHandler ClientReadyEvent;
         public event MessageCreatedEventHandler MessageCreatedEvent;
+        public event MessageDeletedEventHandler MessageDeletedEvent;
 
         public Bot(string _token)
         {
+            ConnectionStatus = Connection.DISCONNECTED;
             token = _token;
             /**dynamic d = JsonConvert.DeserializeObject(RestApiClient.GETNOAUTH("gateway").Content);
             gateway = Convert.ToString(d.url);
@@ -52,21 +76,52 @@ namespace Carrotcord_API
             socket.OnOpen += Socket_OnOpen;
             socket.OnClose += Socket_OnClose;
             socket.OnMessage += Socket_OnMessage;*/
-            login();
+            login(ConnectType.NORMAL);
             current = this;
         }
 
-        private void login()
+        private void login(ConnectType type)
         {
             if (socket!=null && socket.IsAlive) return;
             dynamic d = JsonConvert.DeserializeObject(RestApiClient.GETNOAUTH("gateway").Content);
             gateway = Convert.ToString(d.url);
+            ConnectionStatus = Connection.LOGGING_IN;
             socket = new WebSocket($"{gateway}/?v={api_version}&encoding={encoding}&client_id=430746509714259989");
             CarrotcordLogger.log(CarrotcordLogger.LogSource.WEBSOCKET, $"[CONNECTING] {gateway}, version: {api_version}, encoding: {encoding}");
             socket.ConnectAsync();
-            socket.OnOpen += Socket_OnOpen;
+            if (type == ConnectType.NORMAL) socket.OnOpen += Socket_OnOpenNormal;
+            else if (type == ConnectType.RESUME)
+            {
+                ConnectionStatus = Connection.RESUMING;
+                retryTimer.Enabled = false;
+                socket.OnOpen += Socket_OnOpenResume;
+            }
             socket.OnClose += Socket_OnClose;
             socket.OnMessage += Socket_OnMessage;
+        }
+
+        private void Socket_OnOpenResume(object sender, EventArgs e)
+        {
+            //SEND_RESUME();
+        }
+
+        private void Socket_OnOpenNormal(object sender, EventArgs e)
+        {
+            CarrotcordLogger.log(CarrotcordLogger.LogSource.WEBSOCKET, $"[CONNECTED] {gateway}/?v={api_version}&encoding={encoding}");
+        }
+
+        private void Socket_OnError(object sender, ErrorEventArgs e)
+        {
+            Console.WriteLine(e.Message);
+        }
+
+        internal void SEND_RESUME()
+        {
+            //CarrotcordLogger.logBork("RESUMING");
+            CarrotcordLogger.log(CarrotcordLogger.LogSource.WEBSOCKET, $"RESUMING WITH SESSION ID {session_id} AT SEQUENCE {sequence}");
+            socket.SendAsync($"{{ \"op\": {OPCodes.RESUME}, \"d\": {{\"token\": \"{token}\", \"session_id\": \"{session_id}\", \"seq\": {sequence}}}}}", new Action<bool>(completed => {
+                //CarrotcordLogger.log(CarrotcordLogger.LogSource.WEBSOCKET, "RESUME SENT");
+            }));
         }
 
         private void Socket_OnClose(object sender, CloseEventArgs e)
@@ -78,15 +133,26 @@ namespace Carrotcord_API
                 retryTimer.Elapsed += RetryTimer_Elapsed;
                 retryTimer.Start();
             }*/
+            timer.Stop();
+            CarrotcordLogger.log(CarrotcordLogger.LogSource.WEBSOCKET, "DISCONNECTED");
         }
 
         private void RetryTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            login();
+            login(ConnectType.RESUME);
         }
 
         public Bot RegisterCommand(Command command)
         {
+            if (!command.isValid()) throw new NullReferenceException("Either the name or result variable has not been initialized!");
+            foreach(string cmd in commands.Keys)
+            {
+                if(cmd==command.name)
+                {
+                    CarrotcordLogger.logBork($"There already is a command registered by the name of \"{command.name}\", skipping.");
+                    return this;
+                }
+            }
             commands.Add(command.name, command);
             return this;
         }
@@ -101,19 +167,32 @@ namespace Carrotcord_API
             else return null;
         }
 
+        public User getBotOwner()
+        {
+            return ApplicationInfo.owner;
+        }
+
         public void UpdateStatus(string name)
         {
             socket.Send($"{{\"op\": {OPCodes.STATUS_UPDATE}, \"d\": {{ \"game\": {{ \"name\": \"{name}\", \"type\": 0 }}, \"status\": \"online\", \"afk\": false, \"since\": null }}}}");
         }
 
-        private void Socket_OnOpen(object sender, EventArgs e)
+        public void Disconnect()
         {
-            CarrotcordLogger.log(CarrotcordLogger.LogSource.WEBSOCKET, $"[CONNECTED] {gateway}/?v={api_version}&encoding={encoding}");
+            Timer timer = new Timer(new Random().Next(1, 5) * 1000);
+            timer.Elapsed += Timer_Elapsed;
+            timer.Start();
         }
 
-        private void Socket_OnError(object sender, ErrorEventArgs e)
+        internal void OPCODE9_FAILED_RESUME()
         {
-            Console.WriteLine(e.Message);
+            Disconnect();
+        }
+
+        public static void send(string message)
+        {
+            current.socket.Send(message);
+            current.log(message);
         }
 
         protected void READY(dynamic data)
@@ -123,6 +202,8 @@ namespace Carrotcord_API
             botUser.username = Convert.ToString(data.d.user.username);
             botUser.ID = Convert.ToInt64(data.d.user.id);
             botUser.avatar = Convert.ToString(data.d.user.avatar);
+            session_id = Convert.ToString(data.d.session_id);
+            ConnectionStatus = Connection.EVERYTHING_IS_FINE;
             ClientReadyEvent?.Invoke(this, new ClientReadyEventArgs(botUser));
         }
 
@@ -140,7 +221,7 @@ namespace Carrotcord_API
             message.Guild = Guild.getGuild(message.guildID);
             message.pinned = Convert.ToBoolean(messageData.pinned);
 
-            //Storage.cachedMessages.Add(message.ID, message);
+            Storage.cachedMessages.Add(message.ID, message);
             MessageCreatedEvent?.Invoke(this, new MessageCreatedEventArgs(message));
             if (message.author.bot) return;
             foreach (Command cmd in commands.Values) {
@@ -152,12 +233,6 @@ namespace Carrotcord_API
             }
         }
 
-        public static void send(string message)
-        {
-            current.socket.Send(message);
-            current.log(message);
-        }
-
         protected void GUILD_CREATE(dynamic data)
         {
             Guild guild = Guild.fromJSON(data.d);
@@ -165,47 +240,56 @@ namespace Carrotcord_API
 
         protected void MESSAGE_DELETED(dynamic data)
         {
-            
+            CarrotcordLogger.log(CarrotcordLogger.LogSource.BOT, data);
+            if(Storage.cachedMessages.TryGetValue(Convert.ToInt64(data.d.id), out Message msg))
+            {
+                MessageDeletedEvent?.Invoke(this, new MessageDeletedEventArgs(msg));
+            }else
+            {
+                MessageDeletedEvent?.Invoke(this, new MessageDeletedEventArgs(Convert.ToInt64(data.d.id), Convert.ToInt64(data.d.channel_id), Convert.ToInt64(data.d.guild_id)));
+            }
         }
 
         private void HELLO(dynamic data)
         {
+            CarrotcordLogger.LogServer(CarrotcordLogger.LogSource.WEBSOCKET, "[HELLO]");
             heartbeat_interval = Convert.ToInt32(data.d.heartbeat_interval);
             CarrotcordLogger.log(CarrotcordLogger.LogSource.BOT, $"Heartbeat interval set to {heartbeat_interval}.");
-            if(timer==null)
+            if(timer==null || bootup==false || ConnectionStatus == Connection.RESUMING)
             {
                 timer = new Timer(heartbeat_interval);
                 timer.AutoReset = true;
                 timer.Elapsed += Timer_Elapsed;
                 timer.Start();
-                var hello = new Payload()
-                {
-                    OP = OPCodes.HEARTBEAT,
-                    type = null,
-                    sequence = null,
-                    data = null
-                };
+                CarrotcordLogger.log(CarrotcordLogger.LogSource.WEBSOCKET, "HEARTBEAT");
                 socket.SendAsync($"{{\"op\":{OPCodes.HEARTBEAT}, \"d\": null}}", new Action<bool>(completed => {
-                    if (!completed) return;
-                    CarrotcordLogger.log(CarrotcordLogger.LogSource.WEBSOCKET, "HEARTBEAT");
-                    if (!bootup)
-                    {
-                        IDENTIFY();
-                        bootup = true;
-                    }
+                    helloHeartbeat = true;
                 }));
             }
         }
 
-        /**private async Task SendAsync(int opcode, )
+        private void HELLO_AFTER_HEARTBEAT()
         {
-
-        }*/
+            helloHeartbeat = false;
+            if (ConnectionStatus == Connection.RESUMING)
+            {
+                SEND_RESUME();
+                return;
+            }
+            if (!bootup)
+            {
+                IDENTIFY();
+                bootup = true;
+            }
+        }
 
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            socket.Send("{ \"op\": 1, \"d\": null }");
-            CarrotcordLogger.log(CarrotcordLogger.LogSource.WEBSOCKET, "[HEARTBEAT]");
+            if(socket.IsAlive)
+            {
+                socket.Send("{ \"op\": 1, \"d\": null }");
+                CarrotcordLogger.log(CarrotcordLogger.LogSource.WEBSOCKET, "[HEARTBEAT]");
+            }
         }
 
         private void IDENTIFY()
@@ -218,6 +302,12 @@ namespace Carrotcord_API
         private void handleData(dynamic data)
         {
             string t = Convert.ToString(data.t);
+            if(data.code!=null && data.code!="")
+            {
+                var code = Convert.ToInt32(data.code);
+                CarrotcordLogger.logBork($"Error Code: {code}, {(ErrorCode)code}");
+                return;
+            }
             if (t!="null" && t!="")
             {
                 CarrotcordLogger.LogServer(CarrotcordLogger.LogSource.EVENT, t);
@@ -239,30 +329,44 @@ namespace Carrotcord_API
             }
             if(data.s!=null && Convert.ToInt32(data.s)!=null)
             {
-                session_id = Convert.ToInt32(data.s);
+                //session_id = Convert.ToInt32(data.s);
+                sequence = Convert.ToInt32(data.s);
+            }
+            if(Convert.ToString(data.op)!=null)
+            {
+                //CarrotcordLogger.log(CarrotcordLogger.LogSource.WEBSOCKET, "OPCODE " + Convert.ToString(data.op));
             }
             switch(Convert.ToString(data.op))
             {
                 case "9":
                     INVALID_SESSIONS_EVENT(data);
+                    CarrotcordLogger.logBork("BIG BORK OPCODE 9");
                     break;
                 case "10":
                     HELLO(data);
                     break;
                 case "11":
-                    CarrotcordLogger.LogServer(CarrotcordLogger.LogSource.WEBSOCKET, "HEARTBEAT RECEIVED");
+                    CarrotcordLogger.LogServer(CarrotcordLogger.LogSource.WEBSOCKET, "<- HEARTBEAT RECEIVED");
+                    if (helloHeartbeat) HELLO_AFTER_HEARTBEAT();
                     break;
             }
         }
 
-        private void INVALID_SESSIONS_EVENT(dynamic data)
+        public void INVALID_SESSIONS_EVENT(dynamic data)
         {
             //ratelimited = true;
             CarrotcordLogger.logBork("[DISCONNECT] OPCODE 9 INVALID SESSION");
-            CarrotcordLogger.logBork("[OPCODE 9 DATA]: ---------------------------");
+            /**CarrotcordLogger.logBork("[OPCODE 9 DATA]: ---------------------------");
             CarrotcordLogger.logBork(data);
-            CarrotcordLogger.logBork("--------------------------------------------");
-            socket.CloseAsync();
+            CarrotcordLogger.logBork("--------------------------------------------");*/
+            if(socket.IsAlive) socket.CloseAsync();
+            if (retry)
+            {
+                retryTimer = new Timer(10000);
+                retryTimer.AutoReset = true;
+                retryTimer.Elapsed += RetryTimer_Elapsed;
+                retryTimer.Start();
+            }
         }
 
         public void log(string message)

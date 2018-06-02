@@ -10,5 +10,6 @@ namespace Carrotcord_API.Carrotcord.Stuff
     {
         public static Dictionary<long, Message> cachedMessages = new Dictionary<long, Message>();
         public static Dictionary<long, Guild> cachedGuilds = new Dictionary<long, Guild>();
+        public static Dictionary<long, Channel> cachedChannels = new Dictionary<long, Channel>();
     }
 }

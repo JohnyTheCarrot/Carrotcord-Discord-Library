@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Carrotcord_API.Carrotcord.Events;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,10 @@ namespace Carrotcord_API.Carrotcord.API
     public class CarrotcordLogger
     {
 
+        public static event CarrotcordLoggerLogEvent LogEvent;
+
+        public static CarrotcordLogger current { get; internal set;}
+
         public enum LogSource
         {
             //9
@@ -16,6 +21,8 @@ namespace Carrotcord_API.Carrotcord.API
             REST = (12-4),
             BOT = (12-3),
             EVENT = (12-5),
+            CHAT = (12-4),
+            VERBOSE = (12-7),
             ERRORHANDLER = 0 //12
         }
 
@@ -43,21 +50,51 @@ namespace Carrotcord_API.Carrotcord.API
         public static void logBork(string message)
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"[{DateTime.Now}] [CLIENT] [{getFixedLogSource(LogSource.ERRORHANDLER)}]: {message}");
+            Console.WriteLine($"[{DateTime.Now}] [CLIENT] [X] [{getFixedLogSource(LogSource.ERRORHANDLER)}]: {message}");
             Console.ForegroundColor = ConsoleColor.White;
+            if (current == null) current = new CarrotcordLogger();
+            LogEvent?.Invoke(current, new CarrotcordLoggerLogEventArgs($"[{DateTime.Now}] [CLIENT] [X] [{getFixedLogSource(LogSource.ERRORHANDLER)}]: {message}"));
         }
 
-        public static void log(LogSource logSource, string message)
+        public static void logVerbose(string message)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine($"[{DateTime.Now}] [CLIENT] [X] [{getFixedLogSource(LogSource.VERBOSE)}]: {message}");
+            Console.ForegroundColor = ConsoleColor.White;
+            if (current == null) current = new CarrotcordLogger();
+            LogEvent?.Invoke(current, new CarrotcordLoggerLogEventArgs($"[{DateTime.Now}] [CLIENT] [X] [{getFixedLogSource(LogSource.VERBOSE)}]: {message}"));
+        }
+
+        /**public static void log(LogSource logSource, string message)
         {
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine($"[{DateTime.Now}] [CLIENT] [{getFixedLogSource(logSource)}]: {message}");
+        }*/
+
+        public static void log(LogSource logSource, object message)
+        {
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine($"[{DateTime.Now}] [CLIENT] [{Bot.current?.sequence}] [{getFixedLogSource(logSource)}]: {message}");
+            if(current==null) current = new CarrotcordLogger();
+            LogEvent?.Invoke(current, new CarrotcordLoggerLogEventArgs($"[{DateTime.Now}] [CLIENT] [{getFixedLogSource(logSource)}]: {message}"));
+        }
+
+        public static void LogClient(LogSource logSource, string message)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"[{DateTime.Now}] [SERVER] [{Bot.current?.sequence}] [{getFixedLogSource(logSource)}]: {message}");
+            Console.ForegroundColor = ConsoleColor.White;
+            if (current == null) current = new CarrotcordLogger();
+            LogEvent?.Invoke(current, new CarrotcordLoggerLogEventArgs($"[{DateTime.Now}] [SERVER] [{getFixedLogSource(logSource)}]: {message}"));
         }
 
         public static void LogServer(LogSource logSource, string message)
         {
             Console.ForegroundColor = ConsoleColor.Magenta;
-            Console.WriteLine($"[{DateTime.Now}] [SERVER] [{getFixedLogSource(logSource)}]: {message}");
+            Console.WriteLine($"[{DateTime.Now}] [SERVER] [{Bot.current?.sequence}] [{getFixedLogSource(logSource)}]: {message}");
             Console.ForegroundColor = ConsoleColor.White;
+            if (current == null) current = new CarrotcordLogger();
+            LogEvent?.Invoke(current, new CarrotcordLoggerLogEventArgs($"[{DateTime.Now}] [SERVER] [{getFixedLogSource(logSource)}]: {message}"));
         }
     }
 }
