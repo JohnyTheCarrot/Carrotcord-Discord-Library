@@ -59,11 +59,16 @@
     <Compile Include="Carrotcord\API\OPCodes.cs" />
     <Compile Include="Carrotcord\API\Overwrite.cs" />
     <Compile Include="Carrotcord\API\Payload.cs" />
+    <Compile Include="Carrotcord\API\RatelimitHandler.cs" />
     <Compile Include="Carrotcord\API\RequireChannelTypeAttribute.cs" />
     <Compile Include="Carrotcord\API\RestApiClient.cs" />
+    <Compile Include="Carrotcord\API\StatusType.cs" />
     <Compile Include="Carrotcord\API\TokenType.cs" />
     <Compile Include="Carrotcord\API\MissingAccessException50001.cs" />
     <Compile Include="Carrotcord\Events\CarrotcordEvents.cs" />
+    <Compile Include="Carrotcord\HTTP\204NoContent.cs" />
+    <Compile Include="Carrotcord\HTTP\MissingPermissions.cs" />
+    <Compile Include="Carrotcord\HTTP\RatelimitTriggeredException.cs" />
     <Compile Include="Carrotcord\Stuff\ApplicationInfo.cs" />
     <Compile Include="Carrotcord\Stuff\Channel.cs" />
     <Compile Include="Carrotcord\Stuff\Commands\Command.cs" />

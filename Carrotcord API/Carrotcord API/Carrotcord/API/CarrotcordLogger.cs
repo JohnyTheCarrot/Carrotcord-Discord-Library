@@ -14,6 +14,8 @@ namespace Carrotcord_API.Carrotcord.API
 
         public static CarrotcordLogger current { get; internal set;}
 
+        public static bool doLogVerbose = false;
+
         public enum LogSource
         {
             //9
@@ -58,6 +60,7 @@ namespace Carrotcord_API.Carrotcord.API
 
         public static void logVerbose(string message)
         {
+            if (!doLogVerbose) return;
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine($"[{DateTime.Now}] [CLIENT] [X] [{getFixedLogSource(LogSource.VERBOSE)}]: {message}");
             Console.ForegroundColor = ConsoleColor.White;

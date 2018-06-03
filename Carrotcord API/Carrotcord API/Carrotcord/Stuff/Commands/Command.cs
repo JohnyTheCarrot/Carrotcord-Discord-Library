@@ -15,11 +15,31 @@ namespace Carrotcord_API.Carrotcord.Stuff
         public Action<Exception, Message> onError;
         public Action<string, CommandContext> onCommandCanceled;
         public List<string> args = new List<string>();
+        /// <summary>
+        /// Use when you need an exact amount of arguments
+        /// Will render <see cref="minArgs"/> and <see cref="maxArgs"/> useless.
+        /// </summary>
+        public int? requiredArgsExact;
+        /// <summary>
+        /// Use when you need a minimum amount of arguments, but you allow more than the minimum.
+        /// Can't be used along with <see cref="requiredArgsExact"/>
+        /// </summary>
+        public int? minArgs;
+        /// <summary>
+        /// Use to declare a maximum amount of arguments.
+        /// Can't be used along with <see cref="requiredArgsExact"/>
+        /// </summary>
+        public int? maxArgs;
+        public bool catchError = true;
 
         public List<CommandRequirement> requirements;
 
+        /// <summary>
+        /// Use when you want to initialize the variables by object reference
+        /// </summary>
         public Command(){}
 
+        [Obsolete("Depracated. Will work but use Command(string name, Action<CommandContext> context) or Command(string name, Action<Message, List<string>> result, Action<Exception, Message> onError) instead")]
         public Command(string name, Action<Message, List<string>> result)
         {
             this.name = name;
@@ -33,6 +53,11 @@ namespace Carrotcord_API.Carrotcord.Stuff
             this.onError = onError;
         }
 
+        /// <summary>
+        /// Creates a command
+        /// </summary>
+        /// <param name="name">name of the command</param>
+        /// <param name="context"></param>
         public Command(string name, Action<CommandContext> context)
         {
             this.name = name;
@@ -64,6 +89,23 @@ namespace Carrotcord_API.Carrotcord.Stuff
             try
             {
                 args = message.content.Substring(Bot.current.prefix.Length + name.Length + 1).Split(' ').ToList();
+                if (result != null) return;
+                CommandContext context = new CommandContext(Channel.getChannel(message.channelID), message.author, message, message.content.Substring(Bot.current.prefix.Length + name.Length + 1).Split(' ').ToList<string>(), this);
+                if (requiredArgsExact.HasValue && args.Count != requiredArgsExact)
+                {
+                    Cancel($"Amount of arguments does not match the required amount of {requiredArgsExact}", context);
+                    return;
+                }
+                if(minArgs.HasValue && args.Count<minArgs)
+                {
+                    Cancel($"Too little arguments given. Given: {args.Count} Minimum required: {minArgs}", context);
+                    return;
+                }
+                if(maxArgs.HasValue && args.Count>maxArgs)
+                {
+                    Cancel($"Too many arguments given. Given: {args.Count} Maximum: {maxArgs}", context);
+                    return;
+                }
             }
             catch(ArgumentOutOfRangeException)
             {
@@ -86,90 +128,103 @@ namespace Carrotcord_API.Carrotcord.Stuff
                 try {
                     //Console.WriteLine(message.content.Substring(Bot.current.prefix.Length + name.Length + 1));
                     message.content.Substring(Bot.current.prefix.Length + name.Length + 1);
-                    try
+                    if(catchError)
                     {
-                        result.Invoke(message, message.content.Substring(Bot.current.prefix.Length + name.Length + 1).Split(' ').ToList<string>());
-                    }catch(Exception ex)
-                    {
-                        if(onError!=null)
+                        try
                         {
-                            onError.Invoke(ex, message);
-                        }else
+                            result.Invoke(message, message.content.Substring(Bot.current.prefix.Length + name.Length + 1).Split(' ').ToList<string>());
+                        }catch(Exception ex)
                         {
-                            DiscordEmbed embed = new DiscordEmbed()
+                            if(onError!=null)
                             {
-                                title = ex.GetType().ToString(),
-                                description = ex.Message
-                            };
-                            message.reply("Something borked. <:monkaSCD:444404955265236992>", embed);
+                                onError.Invoke(ex, message);
+                            }else
+                            {
+                                DiscordEmbed embed = new DiscordEmbed()
+                                {
+                                    title = ex.GetType().ToString(),
+                                    description = ex.Message
+                                };
+                                message.reply("Something borked. <:monkaSCD:444404955265236992>", embed);
+                            }
                         }
-                    }
+                    }else result.Invoke(message, message.content.Substring(Bot.current.prefix.Length + name.Length + 1).Split(' ').ToList<string>());
                 } catch(ArgumentOutOfRangeException)
                 {
-                    try
+                    if(catchError)
                     {
-                        result.Invoke(message, new List<string>());
-                    }catch(Exception ex)
-                    {
-                        if (onError!=null) onError.Invoke(ex, message);
-                        else
+                        try
                         {
-                            DiscordEmbed embed = new DiscordEmbed()
+                            result.Invoke(message, new List<string>());
+                        }catch(Exception ex)
+                        {
+                            if (onError!=null) onError.Invoke(ex, message);
+                            else
                             {
-                                title = ex.GetType().ToString(),
-                                description = $"**Type:**: {ex.StackTrace}\n**Message:** {ex.Message}"
-                            };
-                            message.reply("Something borked. <:monkaSCD:444404955265236992>", embed);
+                                DiscordEmbed embed = new DiscordEmbed()
+                                {
+                                    title = ex.GetType().ToString(),
+                                    description = $"**Type:**: {ex.StackTrace}\n**Message:** {ex.Message}"
+                                };
+                                message.reply("Something borked. <:monkaSCD:444404955265236992>", embed);
+                            }
                         }
-                    }
+                    }else result.Invoke(message, new List<string>());
                 }
             }else if(resultContext!=null)
             {
                 try
                 {
                     message.content.Substring(Bot.current.prefix.Length + name.Length + 1);
-                    try
+                    if(catchError)
                     {
-                        resultContext.Invoke(new CommandContext(Channel.getChannel(message.channelID), message.author, message, message.content.Substring(Bot.current.prefix.Length + name.Length + 1).Split(' ').ToList<string>(), this));
-                    }
-                    catch (Exception ex)
-                    {
-                        if (onError != null)
+                        try
                         {
-                            onError.Invoke(ex, message);
+                            resultContext.Invoke(new CommandContext(Channel.getChannel(message.channelID), message.author, message, message.content.Substring(Bot.current.prefix.Length + name.Length + 1).Split(' ').ToList<string>(), this));
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            DiscordEmbed embed = new DiscordEmbed()
+                            if (onError != null)
                             {
-                                title = ex.GetType().ToString(),
-                                description = ex.Message
-                            };
-                            message.reply("Something borked. <:monkaSCD:444404955265236992>", embed);
+                                onError.Invoke(ex, message);
+                            }
+                            else
+                            {
+                                DiscordEmbed embed = new DiscordEmbed()
+                                {
+                                    title = ex.GetType().ToString(),
+                                    description = ex.Message
+                                };
+                                message.reply("Something borked. <:monkaSCD:444404955265236992>", embed);
+                            }
                         }
-                    }
-                }catch(ArgumentOutOfRangeException)
+                    }else resultContext.Invoke(new CommandContext(Channel.getChannel(message.channelID), message.author, message, message.content.Substring(Bot.current.prefix.Length + name.Length + 1).Split(' ').ToList<string>(), this));
+                }
+                catch(ArgumentOutOfRangeException)
                 {
-                    try
+                    if(catchError)
                     {
-                        resultContext.Invoke(new CommandContext(Channel.getChannel(message.channelID), message.author, message, new List<string>(), this));
-                    }
-                    catch (Exception ex)
-                    {
-                        if (onError != null)
+                        try
                         {
-                            onError.Invoke(ex, message);
+                            resultContext.Invoke(new CommandContext(Channel.getChannel(message.channelID), message.author, message, new List<string>(), this));
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            DiscordEmbed embed = new DiscordEmbed()
+                            if (onError != null)
                             {
-                                title = ex.GetType().ToString(),
-                                description = ex.Message
-                            };
-                            message.reply("Something borked. <:monkaSCD:444404955265236992>", embed);
+                                onError.Invoke(ex, message);
+                            }
+                            else
+                            {
+                                DiscordEmbed embed = new DiscordEmbed()
+                                {
+                                    title = ex.GetType().ToString(),
+                                    description = ex.Message
+                                };
+                                message.reply("Something borked. <:monkaSCD:444404955265236992>", embed);
+                            }
                         }
-                    }
+                    }else resultContext.Invoke(new CommandContext(Channel.getChannel(message.channelID), message.author, message, new List<string>(), this));
                 }
             }
         }

@@ -29,6 +29,7 @@ namespace Carrotcord_API.Carrotcord.Stuff
             message.author = User.fromData(data.author);
             message.pinned = data.pinned;
             message.Guild = Guild.getGuild(message.guildID);
+            message.content = Convert.ToString(data.content);
             return message;
         }
 

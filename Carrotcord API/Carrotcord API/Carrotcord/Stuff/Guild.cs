@@ -80,13 +80,13 @@ namespace Carrotcord_API.Carrotcord.Stuff
         {
             if(member is Int64) {
                 //TODO: FIX
-                CarrotcordLogger.log(CarrotcordLogger.LogSource.BOT, "long: "+member);
+                //CarrotcordLogger.log(CarrotcordLogger.LogSource.BOT, "long: "+member);
                 foreach (GuildUser m in members)
                 {
-                    CarrotcordLogger.log(CarrotcordLogger.LogSource.BOT, "guilduser " + m.username + "("+m.ID+")");
+                    //CarrotcordLogger.log(CarrotcordLogger.LogSource.BOT, "guilduser " + m.username + "("+m.ID+")");
                     if (m.ID == (long)member)
                     {
-                        CarrotcordLogger.log(CarrotcordLogger.LogSource.BOT, "MATCH");
+                        //CarrotcordLogger.log(CarrotcordLogger.LogSource.BOT, "MATCH");
                         return m;
                     }
                 }
@@ -154,7 +154,7 @@ namespace Carrotcord_API.Carrotcord.Stuff
                 {
                     GuildUser user = GuildUser.FromData(data.members[i], guild);
                     guild.members.Add(user);
-                    CarrotcordLogger.log(CarrotcordLogger.LogSource.BOT, "guilduser init "+user.username);
+                    //CarrotcordLogger.log(CarrotcordLogger.LogSource.BOT, "guilduser init "+user.username);
                 }
             }
 

@@ -1,4 +1,5 @@
-﻿using Carrotcord_API.Carrotcord.Stuff;
+﻿using Carrotcord_API.Carrotcord.Exceptions;
+using Carrotcord_API.Carrotcord.Stuff;
 using Microsoft.CSharp.RuntimeBinder;
 using Newtonsoft.Json;
 using RestSharp;
@@ -37,6 +38,7 @@ namespace Carrotcord_API.Carrotcord.API
             dynamic data = JsonConvert.DeserializeObject(rawData);
             if (data.code != null)
             {
+                Console.WriteLine(data.code);
                 return new DoubleVar<dynamic, ErrorCode>(null, (ErrorCode)Convert.ToInt32(data.code));
             }
             else return new DoubleVar<dynamic, ErrorCode>(data, ErrorCode.OK);
@@ -53,6 +55,8 @@ namespace Carrotcord_API.Carrotcord.API
                     return new MissingAccessException50001();
                 case ErrorCode.UNKNOWN_MEMBER:
                     return new UnknownMemberException10007();
+                case ErrorCode.MISSING_PERMISSIONS:
+                    return new MissingPermissions("50013 Missing Permissions");
             }
             return null;
         }

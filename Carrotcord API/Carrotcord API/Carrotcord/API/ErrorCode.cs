@@ -9,8 +9,12 @@ namespace Carrotcord_API.Carrotcord.API
     public enum ErrorCode
     {
         OK = 200,
+        CREATED = 201,
+        NO_CONTENT = 204,
+        NOT_MODIFIED = 304,
         UNKNOWN_MEMBER = 10007,
         MISSING_ACCESS = 50001,
+        MISSING_PERMISSIONS = 50013,
         //CLOSE
         /// <summary>
         /// We're not sure what went wrong. Try reconnecting?

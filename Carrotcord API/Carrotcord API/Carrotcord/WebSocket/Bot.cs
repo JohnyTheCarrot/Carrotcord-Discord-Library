@@ -172,21 +172,30 @@ namespace Carrotcord_API
             return ApplicationInfo.owner;
         }
 
-        public void UpdateStatus(string name)
+        public void UpdateStatus(StatusType type, string name)
         {
-            socket.Send($"{{\"op\": {OPCodes.STATUS_UPDATE}, \"d\": {{ \"game\": {{ \"name\": \"{name}\", \"type\": 0 }}, \"status\": \"online\", \"afk\": false, \"since\": null }}}}");
+            socket.Send($"{{\"op\": {OPCodes.STATUS_UPDATE}, \"d\": {{ \"game\": {{ \"name\": \"{name}\", \"type\": {type}}}, \"status\": \"online\", \"afk\": false, \"since\": null }}}}");
         }
 
         public void Disconnect()
         {
-            Timer timer = new Timer(new Random().Next(1, 5) * 1000);
-            timer.Elapsed += Timer_Elapsed;
-            timer.Start();
+            //CarrotcordLogger.log(CarrotcordLogger.LogSource.ERRORHANDLER, "DISCONNECTED");
+            if (socket.IsAlive) socket.CloseAsync();
+            if (retry)
+            {
+                retryTimer = new Timer(5000);
+                retryTimer.AutoReset = true;
+                retryTimer.Elapsed += RetryTimer_Elapsed;
+                retryTimer.Start();
+            }
         }
 
         internal void OPCODE9_FAILED_RESUME()
         {
-            Disconnect();
+            //Disconnect();
+            Timer timer = new Timer(new Random().Next(1, 5) * 1000);
+            timer.Elapsed += Timer_Elapsed;
+            timer.Start();
         }
 
         public static void send(string message)
@@ -266,6 +275,11 @@ namespace Carrotcord_API
                     helloHeartbeat = true;
                 }));
             }
+        }
+
+        public void trigger404()
+        {
+            RestApiClient.GET("hahayes");
         }
 
         private void HELLO_AFTER_HEARTBEAT()
@@ -359,14 +373,7 @@ namespace Carrotcord_API
             /**CarrotcordLogger.logBork("[OPCODE 9 DATA]: ---------------------------");
             CarrotcordLogger.logBork(data);
             CarrotcordLogger.logBork("--------------------------------------------");*/
-            if(socket.IsAlive) socket.CloseAsync();
-            if (retry)
-            {
-                retryTimer = new Timer(10000);
-                retryTimer.AutoReset = true;
-                retryTimer.Elapsed += RetryTimer_Elapsed;
-                retryTimer.Start();
-            }
+            Disconnect();
         }
 
         public void log(string message)

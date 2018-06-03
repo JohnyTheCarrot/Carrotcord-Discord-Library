@@ -26,8 +26,8 @@ namespace Carrotcord_API.Carrotcord.Stuff
 
         public void checkLimits()
         {
-            if (title.Length > (int)FieldType.EMBED_TITLE) throw new InputTooLongException(FieldType.EMBED_TITLE, $"Embed title exceeds max length of {(int)FieldType.EMBED_TITLE}. Current length: {title.Length}");
-            else if(description.Length>(int)FieldType.EMBED_DESCRIPTION) throw new InputTooLongException(FieldType.EMBED_TITLE, $"Embed description exceeds max length of {(int)FieldType.EMBED_DESCRIPTION}. Current length: {description.Length}");
+            if (title!=null && title.Length > (int)FieldType.EMBED_TITLE) throw new InputTooLongException(FieldType.EMBED_TITLE, $"Embed title exceeds max length of {(int)FieldType.EMBED_TITLE}. Current length: {title.Length}");
+            else if(description!=null && description.Length>(int)FieldType.EMBED_DESCRIPTION) throw new InputTooLongException(FieldType.EMBED_TITLE, $"Embed description exceeds max length of {(int)FieldType.EMBED_DESCRIPTION}. Current length: {description.Length}");
         }
 
         internal object toJSON()
